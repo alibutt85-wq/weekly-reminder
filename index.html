@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ہفتہ وار یاد دہانی</title>
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#EEF2F9;
+       font-family:'Noto Nastaliq Urdu','Noto Naskh Arabic','Jameel Noori Nastaleeq',Tahoma,serif;color:#0B1B3B;text-align:center}
+  main{width:100%;max-width:420px;padding:28px 22px}
+  h1{font-size:28px;line-height:2;margin:0 0 6px}
+  p{font-size:19px;line-height:2.1;margin:8px 0}
+  .en{font-family:Arial,sans-serif;direction:ltr;font-size:14px;color:#6B7A93;line-height:1.5}
+  .btn{display:block;margin:26px 0 14px;padding:20px 12px;background:#E63950;color:#fff;font-size:26px;font-weight:bold;
+       text-decoration:none;border-radius:16px;line-height:1.8}
+  .alt{font-size:16px;color:#3B6FD4}
+  .next{background:#fff;border-radius:12px;padding:10px 14px;font-size:18px}
+</style>
+</head>
+<body>
+<main>
+  <h1>ہفتہ وار یاد دہانی</h1>
+  <p>ہر اتوار صبح 9 بجے آپ کو اپنا گولیوں کا ڈبہ بھرنے کی یاد دلائی جائے گی۔</p>
+  <p class="en">Every Sunday at 9am you will be reminded to fill your weekly pill box.</p>
+  <a id="go" class="btn" href="#">یاد دہانی لگائیں</a>
+  <p class="next" id="next"></p>
+  <p><a id="alt" class="alt" href="#">اگر بٹن کام نہ کرے تو یہاں دبائیں</a></p>
+</main>
+<script>
+const TITLE = 'ہفتہ وار گولیوں کا ڈبہ بھریں';
+const NOTE  = 'گولیوں کا ڈبہ بھریں اور آج کی خوراک لیں۔';
+function nextSunday(now){
+  const days = (7 - now.getDay()) % 7 || 7;            // next Sunday, never today
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + days, 9, 0, 0);
+}
+function pad(n){return String(n).padStart(2,'0');}
+function stamp(d){return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'T'+pad(d.getHours())+pad(d.getMinutes())+'00';}
+function build(now){
+  const start = nextSunday(now), end = new Date(start.getTime() + 15*60000);
+  const e = encodeURIComponent, rrule = 'FREQ=WEEKLY;BYDAY=SU';
+  const intent = 'intent:#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/event;' +
+    'S.title=' + e(TITLE) + ';S.description=' + e(NOTE) + ';l.beginTime=' + start.getTime() + ';l.endTime=' + end.getTime() +
+    ';S.rrule=' + e(rrule) + ';B.hasAlarm=true;end';
+  const web = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + e(TITLE) + '&details=' + e(NOTE) +
+    '&dates=' + stamp(start) + '/' + stamp(end) + '&recur=' + e('RRULE:' + rrule) + '&ctz=Asia/Karachi';
+  return {start, intent, web};
+}
+if (typeof document !== 'undefined'){
+  const r = build(new Date());
+  document.getElementById('go').href = r.intent;
+  document.getElementById('alt').href = r.web;
+  let when = r.start.toDateString();
+  try { when = r.start.toLocaleDateString('ur-PK',{weekday:'long',day:'numeric',month:'long'}); } catch(e){}
+  document.getElementById('next').textContent = 'پہلی یاد دہانی: ' + when;
+}
+if (typeof module !== 'undefined') module.exports = {build, nextSunday};
+</script>
+</body>
+</html>
