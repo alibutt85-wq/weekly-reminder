@@ -20,24 +20,23 @@
 <body>
 <main>
   <h1>ہفتہ وار یاد دہانی</h1>
-  <p>ہر اتوار صبح 9 بجے آپ کو اپنا گولیوں کا ڈبہ بھرنے کی یاد دلائی جائے گی۔</p>
-  <p class="en">Every Sunday at 9am you will be reminded to fill your weekly pill box.</p>
+  <p>ہر ہفتے اسی دن صبح 9 بجے آپ کو اپنا گولیوں کا ڈبہ بھرنے کی یاد دلائی جائے گی۔</p>
+  <p class="en">Every week on the same day at 9am you will be reminded to fill your weekly pill box.</p>
   <a id="go" class="btn" href="#">یاد دہانی لگائیں</a>
   <p class="next" id="next"></p>
-  <p><a id="alt" class="alt" href="#">اگر بٹن کام نہ کرے تو یہاں دبائیں</a></p>
 </main>
 <script>
 const TITLE = 'ہفتہ وار گولیوں کا ڈبہ بھریں';
 const NOTE  = 'گولیوں کا ڈبہ بھریں اور آج کی خوراک لیں۔';
-function nextSunday(now){
-  const days = (7 - now.getDay()) % 7 || 7;            // next Sunday, never today
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + days, 9, 0, 0);
+function firstReminder(now){
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 9, 0, 0);   // same weekday, 7 days after the scan
 }
+const DAYS = ['SU','MO','TU','WE','TH','FR','SA'];
 function pad(n){return String(n).padStart(2,'0');}
 function stamp(d){return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'T'+pad(d.getHours())+pad(d.getMinutes())+'00';}
 function build(now){
-  const start = nextSunday(now), end = new Date(start.getTime() + 15*60000);
-  const e = encodeURIComponent, rrule = 'FREQ=WEEKLY;BYDAY=SU';
+  const start = firstReminder(now), end = new Date(start.getTime() + 15*60000);
+  const e = encodeURIComponent, rrule = 'FREQ=WEEKLY;BYDAY=' + DAYS[start.getDay()];
   const intent = 'intent:#Intent;action=android.intent.action.INSERT;type=vnd.android.cursor.dir/event;' +
     'S.title=' + e(TITLE) + ';S.description=' + e(NOTE) + ';l.beginTime=' + start.getTime() + ';l.endTime=' + end.getTime() +
     ';S.rrule=' + e(rrule) + ';B.hasAlarm=true;end';
@@ -47,13 +46,12 @@ function build(now){
 }
 if (typeof document !== 'undefined'){
   const r = build(new Date());
-  document.getElementById('go').href = r.intent;
-  document.getElementById('alt').href = r.web;
+  document.getElementById('go').href = r.web;
   let when = r.start.toDateString();
   try { when = r.start.toLocaleDateString('ur-PK',{weekday:'long',day:'numeric',month:'long'}); } catch(e){}
   document.getElementById('next').textContent = 'پہلی یاد دہانی: ' + when;
 }
-if (typeof module !== 'undefined') module.exports = {build, nextSunday};
+if (typeof module !== 'undefined') module.exports = {build, firstReminder};
 </script>
 </body>
 </html>
